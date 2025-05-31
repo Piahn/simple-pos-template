@@ -18,6 +18,7 @@ If you are not familiar with the different technologies used in this project, pl
 
 ## Learn More
 
+
 To learn more about the [T3 Stack](https://create.t3.gg/), take a look at the following resources:
 
 - [Documentation](https://create.t3.gg/)
