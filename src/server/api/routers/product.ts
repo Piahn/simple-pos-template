@@ -4,7 +4,7 @@ import { supabaseAdmin } from "@/server/supabase-admin";
 import { Bucket } from "@/server/bucket";
 import { TRPCError } from "@trpc/server";
 
-export const ProductRouter = createTRPCRouter({
+export const productRouter = createTRPCRouter({
     getProducts: protectedProcedure.query(async ({ ctx }) => {
         const { db } = ctx;
 
