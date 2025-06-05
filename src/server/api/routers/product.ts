@@ -3,33 +3,43 @@ import { createTRPCRouter, protectedProcedure } from "../trpc";
 import { supabaseAdmin } from "@/server/supabase-admin";
 import { Bucket } from "@/server/bucket";
 import { TRPCError } from "@trpc/server";
+import type { Prisma } from "@prisma/client";
 
 export const productRouter = createTRPCRouter({
-    getProducts: protectedProcedure.query(async ({ ctx }) => {
-        const { db } = ctx;
+    getProducts: protectedProcedure.input(z.object({
+        categoryId: z.string()
+    }))
+        .query(async ({ ctx, input }) => {
+            const { db } = ctx;
+            const whereClause: Prisma.ProductWhereInput = {};
 
-        const products = await db.product.findMany({
-            select: {
-                id: true,
-                name: true,
-                price: true,
-                imageUrl: true,
-                category: {
-                    select: {
-                        id: true,
-                        name: true,
+
+            if (input.categoryId !== "all") {
+                whereClause.categoryId = input.categoryId;
+            }
+
+            const products = await db.product.findMany({
+                select: {
+                    id: true,
+                    name: true,
+                    price: true,
+                    imageUrl: true,
+                    category: {
+                        select: {
+                            id: true,
+                            name: true,
+                        },
                     },
                 },
-            },
-        });
+            });
 
-        return products;
-    }),
+            return products;
+        }),
 
     createProduct: protectedProcedure
         .input(
             z.object({
-                name: z.string().min(3),
+                name: z.string().min(3, "Minimum of 3 characters required"),
                 price: z.number().min(1000),
                 categoryId: z.string(),
                 // multipart/form-data | JSON
@@ -83,7 +93,7 @@ export const productRouter = createTRPCRouter({
             const { db } = ctx;
             const { id, name, price, categoryId, imageUrl: newImageUrl } = input;
 
-            // 1. Ambil data produk yang akan diupdate, termasuk imageUrl lama
+            // Ambil data produk yang akan diupdate, termasuk imageUrl lama
             const existingProduct = await db.product.findUnique({
                 where: { id: id },
                 select: { imageUrl: true },
@@ -98,7 +108,7 @@ export const productRouter = createTRPCRouter({
 
             const oldImageUrl = existingProduct.imageUrl;
 
-            // 2. Lakukan update data produk di database
+            // Lakukan update data produk di database
             const updatedProduct = await db.product.update({
                 where: {
                     id: id,

@@ -13,14 +13,20 @@ type xenditWebhookBody = {
 }
 
 const handler: NextApiHandler = async (req, res) => {
-    if (req.method !== "POST") return;
+    // if (req.method !== "POST") return;
 
+    const header = req.headers;
+    const webhookToken = header["x-callback-token"];
     const body = req.body as xenditWebhookBody;
 
     // TODO: Handle payment webhook
     // 1. Update order status
     // 2. Update order items
     // 3. Update payment method
+
+    if (webhookToken !== process.env.XENDIT_WEBHOOK_TOKEN) {
+        return res.status(401).send("Unauthorized");
+    }
 
     const order = await db.order.findUnique({
         where: {
@@ -47,7 +53,7 @@ const handler: NextApiHandler = async (req, res) => {
         },
     });
 
-    res.status(200);
+    res.status(200).send("OK");
 }
 
 export default handler;

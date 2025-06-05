@@ -1,4 +1,6 @@
 import { Button } from "@/components/ui/button";
+import { toRupiah } from "@/utils/toRupiah";
+import { OrderStatus } from "@prisma/client";
 
 export interface Order {
   id: string;
@@ -8,53 +10,80 @@ export interface Order {
 }
 
 interface OrderCardProps {
-  order: Order;
+  id: string;
   onFinishOrder?: (orderId: string) => void;
+  totalAmount: number;
+  totalItems: number;
+  status: OrderStatus;
+  isFinishingOrder: boolean;
 }
 
-export const OrderCard = ({ order, onFinishOrder }: OrderCardProps) => {
+export const OrderCard = ({
+  id,
+  onFinishOrder,
+  totalAmount,
+  totalItems,
+  status,
+  isFinishingOrder,
+}: OrderCardProps) => {
   const handleFinishOrder = () => {
     if (onFinishOrder) {
-      onFinishOrder(order.id);
+      onFinishOrder(id);
+    }
+  };
+
+  const getBadgeColor = () => {
+    switch (status) {
+      case OrderStatus.AWAITING_PAYMENT:
+        return "bg-yellow-200 text-yellow-900";
+      case OrderStatus.PROCESSING:
+        return "bg-blue-200 text-blue-900";
+      case OrderStatus.DONE:
+        return "bg-green-200 text-green-900";
     }
   };
 
   return (
-    <div className="rounded-lg border p-4 shadow-sm bg-card">
-      <div className="flex justify-between items-start mb-3">
+    <div className="bg-card rounded-lg border p-4 shadow-sm">
+      <div className="mb-3 flex items-start justify-between">
         <div>
-          <h4 className="font-medium text-sm text-muted-foreground">Order ID</h4>
-          <p className="font-mono text-sm">{order.id}</p>
+          <h4 className="text-muted-foreground text-sm font-medium">
+            Order ID
+          </h4>
+          <p className="font-mono text-sm">{id}</p>
         </div>
-        <div className={`px-2 py-1 rounded-full text-xs font-medium ${
-          order.status === "Processing" 
-            ? "bg-yellow-100 text-yellow-800" 
-            : "bg-green-100 text-green-800"
-        }`}>
-          {order.status}
+        <div
+          className={`rounded-full px-2 py-1 text-xs font-medium ${getBadgeColor()}`}
+        >
+          {status}
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 mb-4">
+      <div className="mb-4 grid grid-cols-2 gap-4">
         <div>
-          <h4 className="font-medium text-sm text-muted-foreground">Total Amount</h4>
-          <p className="text-lg font-bold">${order.totalAmount.toFixed(2)}</p>
+          <h4 className="text-muted-foreground text-sm font-medium">
+            Total Amount
+          </h4>
+          <p className="text-lg font-bold">${toRupiah(totalAmount)}</p>
         </div>
         <div>
-          <h4 className="font-medium text-sm text-muted-foreground">Total Items</h4>
-          <p className="text-lg font-bold">{order.totalItems}</p>
+          <h4 className="text-muted-foreground text-sm font-medium">
+            Total Items
+          </h4>
+          <p className="text-lg font-bold">{totalItems}</p>
         </div>
       </div>
 
-      {order.status === "Processing" && (
-        <Button 
+      {status === OrderStatus.PROCESSING && (
+        <Button
           onClick={handleFinishOrder}
           className="w-full"
           size="sm"
+          disabled={isFinishingOrder}
         >
-          Finish Order
+          {isFinishingOrder ? "Finishing Order..." : "Finish Order"}
         </Button>
       )}
     </div>
   );
-}; 
+};

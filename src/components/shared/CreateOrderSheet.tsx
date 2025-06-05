@@ -1,6 +1,5 @@
 import { Button } from "../ui/button";
 
-import { PRODUCTS } from "@/data/mock";
 import { toRupiah } from "@/utils/toRupiah";
 import { CheckCircle2, Minus, Plus } from "lucide-react";
 import Image from "next/image";
@@ -33,6 +32,16 @@ type OrderItemProps = {
 };
 
 const OrderItem = ({ id, name, price, quantity, imageUrl }: OrderItemProps) => {
+  const cardStore = useCartStore();
+
+  const handleIncrease = () => {
+    cardStore.increaseQuantity(id);
+  };
+
+  const handleDecrease = () => {
+    cardStore.decreaseQuantity(id);
+  };
+
   return (
     <div className="flex gap-3" key={id}>
       <div className="relative aspect-square h-20 shrink-0 overflow-hidden rounded-xl">
@@ -57,13 +66,19 @@ const OrderItem = ({ id, name, price, quantity, imageUrl }: OrderItemProps) => {
           <p className="font-medium">{toRupiah(quantity * price)}</p>
 
           <div className="flex items-center gap-3">
-            <button className="bg-secondary hover:bg-secondary/80 cursor-pointer rounded-full p-1">
+            <button
+              onClick={handleDecrease}
+              className="bg-secondary hover:bg-secondary/80 cursor-pointer rounded-full p-1"
+            >
               <Minus className="h-4 w-4" />
             </button>
 
             <span className="text-sm">{quantity}</span>
 
-            <button className="bg-secondary hover:bg-secondary/80 cursor-pointer rounded-full p-1">
+            <button
+              onClick={handleIncrease}
+              className="bg-secondary hover:bg-secondary/80 cursor-pointer rounded-full p-1"
+            >
               <Plus className="h-4 w-4" />
             </button>
           </div>
@@ -100,6 +115,7 @@ export const CreateOrderSheet = ({
         alert("Order created successfully");
 
         setPaymentDialogOpen(true);
+        setPaymentInfoLoading(false);
       },
     });
 
@@ -112,17 +128,48 @@ export const CreateOrderSheet = ({
         };
       }),
     });
-
-    // setPaymentDialogOpen(true);
-    // setPaymentInfoLoading(true);
-
-    // setTimeout(() => {
-    //   setPaymentInfoLoading(false);
-    // }, 3000);
   };
 
+  const { mutate: simulatePayment } = api.order.simulatePayment.useMutation({
+    onSuccess: () => {
+      handleRefresh();
+    },
+  });
+
+  const {
+    mutate: checkOrderPaymentStatus,
+    data: orderPaid,
+    isPending: isCheckOrderStatus,
+    reset: resetCheckOrderStatus,
+  } = api.order.checkOrderStatus.useMutation({
+    onSuccess: (orderPaid) => {
+      if (orderPaid) {
+        setPaymentSuccess(true);
+        cardStore.clearCart?.();
+      }
+    },
+  });
+
   const handleRefresh = () => {
-    setPaymentSuccess(true);
+    if (!createOrderResponse) return;
+
+    checkOrderPaymentStatus?.({
+      orderId: createOrderResponse?.order.id,
+    });
+  };
+
+  const handleSimulatePayment = () => {
+    if (!createOrderResponse) return;
+
+    simulatePayment({
+      orderId: createOrderResponse.order.id,
+    });
+  };
+
+  const handleClosePaymentDialog = () => {
+    setPaymentDialogOpen(false);
+    onOpenChange(false);
+    resetCheckOrderStatus?.();
   };
 
   return (
@@ -195,9 +242,11 @@ export const CreateOrderSheet = ({
               </div>
             ) : (
               <>
-                <Button variant="link" onClick={handleRefresh}>
-                  Refresh
-                </Button>
+                {!orderPaid && (
+                  <Button variant="link" onClick={handleRefresh}>
+                    {!isCheckOrderStatus ? "Refresh" : "Checking Payment..."}
+                  </Button>
+                )}
 
                 {!paymentSuccess ? (
                   <PaymentQRCode
@@ -214,6 +263,9 @@ export const CreateOrderSheet = ({
                 <p className="text-muted-foreground text-sm">
                   Transaction ID: {createOrderResponse?.order.id}
                 </p>
+                <Button variant={"link"} onClick={handleSimulatePayment}>
+                  Simulate Payment
+                </Button>
               </>
             )}
           </div>
@@ -221,6 +273,7 @@ export const CreateOrderSheet = ({
           <AlertDialogFooter>
             <AlertDialogCancel asChild>
               <Button
+                onClick={handleClosePaymentDialog}
                 disabled={paymentInfoLoading}
                 variant="outline"
                 className="w-full"

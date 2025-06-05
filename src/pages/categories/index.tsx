@@ -47,7 +47,7 @@ const CategoriesPage: NextPageWithLayout = () => {
   });
 
   // ========== API Queries ==========
-  const { data: categories, isLoading: categoriesIsLoading } =
+  const { data: categories, isLoading: isCategoryIsLoading } =
     api.category.getCategories.useQuery();
 
   // ========== API Mutations ==========
@@ -86,7 +86,7 @@ const CategoriesPage: NextPageWithLayout = () => {
 
   const handleSubmitEditCategory = (data: CategoryFormSchema) => {
     if (!categoryToEdit) return;
-    editCategory({ name: data.name, categoryId: categoryToEdit });
+    editCategory({ name: data.name, id: categoryToEdit });
   };
 
   const handleClickEditCategory = (category: { id: string; name: string }) => {
@@ -95,13 +95,13 @@ const CategoriesPage: NextPageWithLayout = () => {
     editCategoryForm.reset({ name: category.name });
   };
 
-  const handleClickDeleteCategory = (categoryId: string) => {
-    setCategoryToDelete(categoryId);
+  const handleClickDeleteCategory = (id: string) => {
+    setCategoryToDelete(id);
   };
 
   const handleConfirmDeleteCategory = () => {
     if (!categoryToDelete) return;
-    deleteCategoryById({ categoryId: categoryToDelete });
+    deleteCategoryById({ id: categoryToDelete });
   };
 
   // ========== Render UI ==========
@@ -152,20 +152,24 @@ const CategoriesPage: NextPageWithLayout = () => {
 
       {/* Category List */}
       <div className="grid grid-cols-4 gap-4">
-        {categories?.map((category) => (
-          <CategoryCatalogCard
-            key={category.id}
-            name={category.name}
-            productCount={category.productCount}
-            onDelete={() => handleClickDeleteCategory(category.id)}
-            onEdit={() =>
-              handleClickEditCategory({
-                id: category.id,
-                name: category.name,
-              })
-            }
-          />
-        ))}
+        {isCategoryIsLoading ? (
+          <p>Loading categories...</p>
+        ) : (
+          categories?.map((category) => (
+            <CategoryCatalogCard
+              key={category.id}
+              name={category.name}
+              productCount={category._count.products}
+              onDelete={() => handleClickDeleteCategory(category.id)}
+              onEdit={() =>
+                handleClickEditCategory({
+                  id: category.id,
+                  name: category.name,
+                })
+              }
+            />
+          ))
+        )}
       </div>
 
       {/* Edit Category Dialog */}

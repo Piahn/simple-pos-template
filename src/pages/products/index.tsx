@@ -25,7 +25,6 @@ import { productFormSchema, type ProductFormSchema } from "@/forms/product";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Notification } from "@/components/ui/notification";
 
-// 🔧 Tambahkan type ini agar UpdateProductSchema tidak undefined
 type UpdateProductSchema = {
   id: string;
   name: string;
@@ -58,7 +57,9 @@ const ProductsPage: NextPageWithLayout = () => {
   const [deleteProductId, setDeleteProductId] = useState<string | null>(null);
   const [deleteProductDialogOpen, setDeleteProductDialogOpen] = useState(false);
 
-  const { data: products } = api.product.getProducts.useQuery();
+  const { data: products } = api.product.getProducts.useQuery({
+    categoryId: "all",
+  });
 
   const { mutate: createProduct } = api.product.createProduct.useMutation({
     onSuccess: async () => {
