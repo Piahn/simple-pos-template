@@ -122,6 +122,22 @@ tRPC -> Tanstack Query / React Query
 
 - Handle caching
 
+# Xendit Setup
+
+1. Register first at Xendit [https://www.xendit.co/] (https://www.xendit.co/)
+2. If you have registered, go to -> **Settings** -> **Developers**
+3. In the `API Keys` create a Secret key
+4. Enter the **Name** and in the **Product section receive payment** so Write and **Product send payment** so Read
+5. After creating, take the secret key
+6. on **Webhooks** get **webhook verification token**
+
+Add them to the `.env` file:
+
+```.env
+XENDIT_MONEY_IN_KEY=your-xendit-token-keys
+XENDIT_WEBHOOK_TOKEN=your-xendit-token-webhook-keys
+```
+
 # Day 4
 
 coming soon...
