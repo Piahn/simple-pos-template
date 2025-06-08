@@ -1,7 +1,7 @@
 import { db } from "@/server/db";
 import type { NextApiHandler } from "next";
 
-type xenditWebhookBody = {
+type XenditWebhookBody = {
     event: "payment.succeeded";
     data: {
         id: string;
@@ -10,19 +10,15 @@ type xenditWebhookBody = {
         reference_id: string;
         status: "SUCCEEDED" | "FAILED";
     };
-}
+};
 
 const handler: NextApiHandler = async (req, res) => {
     // if (req.method !== "POST") return;
 
-    const header = req.headers;
-    const webhookToken = header["x-callback-token"];
-    const body = req.body as xenditWebhookBody;
-
-    // TODO: Handle payment webhook
-    // 1. Update order status
-    // 2. Update order items
-    // 3. Update payment method
+    //   Verify Webhook Xendit
+    const headers = req.headers;
+    const webhookToken = headers["x-callback-token"];
+    const body = req.body as XenditWebhookBody;
 
     if (webhookToken !== process.env.XENDIT_WEBHOOK_TOKEN) {
         return res.status(401).send("Unauthorized");
@@ -39,8 +35,7 @@ const handler: NextApiHandler = async (req, res) => {
     }
 
     if (body.data.status !== "SUCCEEDED") {
-        // TODO: Handle failed payment
-        return res.status(200);
+        return res.status(422);
     }
 
     await db.order.update({
@@ -53,7 +48,7 @@ const handler: NextApiHandler = async (req, res) => {
         },
     });
 
-    res.status(200).send("OK");
-}
+    return res.status(200).send("OK");
+};
 
 export default handler;

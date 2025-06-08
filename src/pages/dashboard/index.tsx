@@ -105,25 +105,15 @@ const DashboardPage: NextPageWithLayout = () => {
           </div>
 
           <div className="flex items-center justify-between gap-5">
-            <div className="flex flex-col gap-1 text-right">
-              <span className="text-sm leading-3 font-semibold md:text-base">
-                {user?.fullName ?? "Unknown User"}
-              </span>
-              <span className="text-pinkcustom text-xs md:text-sm">
-                {user?.emailAddresses?.[0]?.emailAddress ?? "No email found"}
-              </span>
-            </div>
-            <UserButton />
+            {!!cartStore.items.length && (
+              <Button
+                className="animate-in slide-in-from-right"
+                onClick={() => setOrderSheetOpen(true)}
+              >
+                <ShoppingCart /> Cart
+              </Button>
+            )}
           </div>
-
-          {!!cartStore.items.length && (
-            <Button
-              className="animate-in slide-in-from-right"
-              onClick={() => setOrderSheetOpen(true)}
-            >
-              <ShoppingCart /> Cart
-            </Button>
-          )}
         </div>
       </DashboardHeader>
 

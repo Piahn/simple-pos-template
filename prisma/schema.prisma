@@ -48,8 +48,7 @@ model Order {
     // Payment gateway fields
     externalTransactionId String?
     paymentMethodId       String?
-
-    status OrderStatus @default(AWAITING_PAYMENT)
+    status                OrderStatus @default(AWAITING_PAYMENT)
 
     paidAt    DateTime?
     createdAt DateTime  @default(now())

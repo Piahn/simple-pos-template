@@ -64,7 +64,7 @@ export const OrderCard = ({
           <h4 className="text-muted-foreground text-sm font-medium">
             Total Amount
           </h4>
-          <p className="text-lg font-bold">${toRupiah(totalAmount)}</p>
+          <p className="text-lg font-bold">{toRupiah(totalAmount)}</p>
         </div>
         <div>
           <h4 className="text-muted-foreground text-sm font-medium">

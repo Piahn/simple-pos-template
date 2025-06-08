@@ -1,12 +1,12 @@
 import {
   BarChart3,
   Grid3X3,
+  MoonStar,
   Package,
   ShoppingCart,
   Sun,
-  Moon,
-} from "lucide-react"; // Tambahkan Moon untuk ikon tema
-import React, { useEffect, type ReactNode, useState } from "react";
+} from "lucide-react";
+import React, { useEffect, useState, type ReactNode } from "react";
 
 import {
   Sidebar,
@@ -22,8 +22,7 @@ import {
 import { useRouter } from "next/router";
 import Link from "next/link";
 import { useTheme } from "next-themes";
-import { Button } from "../ui/button"; // Pastikan path ini benar
-import { SignOutButton } from "@clerk/nextjs";
+import { Button } from "../ui/button";
 
 // Dashboard header component
 interface DashboardHeaderProps {
@@ -76,62 +75,15 @@ interface DashboardLayoutProps {
 export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const router = useRouter();
   const { theme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false); // State untuk melacak apakah komponen sudah di-mount
+  const [mounted, setMounted] = useState(false);
 
-  // useEffect ini akan berjalan hanya sekali di sisi klien setelah komponen di-mount
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  // useEffect ini untuk menyimpan tema ke localStorage, sudah benar
-  useEffect(() => {
-    if (theme && mounted) {
-      // Pastikan mounted sebelum mengakses localStorage
-      localStorage.setItem("theme", theme);
-    }
-  }, [theme, mounted]);
-
   const toggleTheme = () => {
     setTheme(theme === "dark" ? "light" : "dark");
   };
-
-  // Jangan render UI yang bergantung tema sampai komponen di-mount
-  // Ini mencegah mismatch antara server dan client render awal
-  const renderThemeToggleButton = () => {
-    if (!mounted) {
-      // Saat belum mounted (SSR atau render awal client sebelum useEffect jalan),
-      // render placeholder atau tombol dengan teks/ikon default yang konsisten.
-      // Bisa juga return null jika tidak ingin menampilkan apa-apa.
-      // Untuk konsistensi, kita bisa merender tombol dengan ikon saja tanpa teks dinamis.
-      return (
-        <Button variant="ghost" size="icon" disabled>
-          <Sun className="h-[1.2rem] w-[1.2rem] scale-100 rotate-0 transition-all dark:scale-0 dark:-rotate-90" />
-          <Moon className="absolute h-[1.2rem] w-[1.2rem] scale-0 rotate-90 transition-all dark:scale-100 dark:rotate-0" />
-          <span className="sr-only">Toggle theme (loading)</span>
-        </Button>
-      );
-    }
-
-    // Setelah mounted, render tombol dengan teks/ikon yang sesuai dengan tema saat ini
-    return (
-      <Button
-        variant="ghost"
-        onClick={toggleTheme}
-        aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
-      >
-        {theme === "dark" ? (
-          <>
-            <Moon className="mr-2 h-4 w-4" /> Dark Mode
-          </>
-        ) : (
-          <>
-            <Sun className="mr-2 h-4 w-4" /> Light Mode
-          </>
-        )}
-      </Button>
-    );
-  };
-
   return (
     <SidebarProvider defaultOpen={true}>
       <div className="flex h-screen w-full">
@@ -145,10 +97,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                 <SidebarMenuButton
                   asChild
                   tooltip="Create Order"
-                  isActive={
-                    router.pathname === "/dashboard" ||
-                    router.pathname.startsWith("/dashboard/")
-                  }
+                  isActive={router.pathname.includes("/dashboard")}
                 >
                   <Link href="/dashboard">
                     <ShoppingCart className="mr-2 h-4 w-4" />
@@ -165,7 +114,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                 <SidebarMenuButton
                   asChild
                   tooltip="Category Management"
-                  isActive={router.pathname.startsWith("/categories")}
+                  isActive={router.pathname.includes("/categories")}
                 >
                   <Link href="/categories">
                     <Grid3X3 className="mr-2 h-4 w-4" />
@@ -178,7 +127,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                 <SidebarMenuButton
                   asChild
                   tooltip="Product Management"
-                  isActive={router.pathname.startsWith("/products")}
+                  isActive={router.pathname.includes("/products")}
                 >
                   <Link href="/products">
                     <Package className="mr-2 h-4 w-4" />
@@ -191,7 +140,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                 <SidebarMenuButton
                   asChild
                   tooltip="Sales Dashboard"
-                  isActive={router.pathname.startsWith("/sales")}
+                  isActive={router.pathname.includes("/sales")}
                 >
                   <Link href="/sales">
                     <BarChart3 className="mr-2 h-4 w-4" />
@@ -201,14 +150,25 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
               </SidebarMenuItem>
             </SidebarMenu>
           </SidebarContent>
-          <SidebarFooter className="space-y-2 p-4">
-            <div className="flex items-center justify-between">
-              {renderThemeToggleButton()}
+          <SidebarFooter className="p-4">
+            <div className="flex items-center gap-2">
+              <Button variant="ghost" onClick={toggleTheme}>
+                {mounted && theme === "dark" ? (
+                  <>
+                    <MoonStar className="mr-2 h-10 w-10" />
+                    Dark Mode
+                  </>
+                ) : mounted ? (
+                  <>
+                    <Sun className="mr-2 h-10 w-10" />
+                    Light Mode
+                  </>
+                ) : (
+                  <>Loading...</>
+                )}
+              </Button>
             </div>
-            <div className="hover:bg-muted flex items-center justify-between space-x-2 rounded-md p-2 px-2 transition-colors duration-200 ease-in-out">
-              <SignOutButton redirectUrl="/" />
-            </div>
-            <p className="text-muted-foreground pt-2 text-center text-xs">
+            <p className="text-muted-foreground pt-3 text-center text-xs">
               Simple POS v1.0
             </p>
           </SidebarFooter>

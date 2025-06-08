@@ -170,6 +170,8 @@ export const CreateOrderSheet = ({
     setPaymentDialogOpen(false);
     onOpenChange(false);
     resetCheckOrderStatus?.();
+
+    setPaymentSuccess(false);
   };
 
   return (
