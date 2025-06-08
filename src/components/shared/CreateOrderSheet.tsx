@@ -106,7 +106,7 @@ export const CreateOrderSheet = ({
     return a + b.price * b.quantity;
   }, 0);
 
-  const tax = useMemo(() => subtotal * 0.17, [subtotal]);
+  const tax = useMemo(() => subtotal * 0.1, [subtotal]);
   const grandTotal = useMemo(() => subtotal + tax, [subtotal, tax]);
 
   const { mutate: createOrder, data: createOrderResponse } =
